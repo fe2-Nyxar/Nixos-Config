@@ -6,8 +6,10 @@
 
 {
   imports =
-    [ # Include the results of the hardware scan.
+    [
+      # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      ./fonts-configuration.nix
     ];
 
   # Bootloader.
@@ -43,16 +45,25 @@
   };
 
   # Enable the X11 windowing system.
-  services.xserver.enable = true;
-
-  # Enable the KDE Plasma Desktop Environment.
-  services.xserver.displayManager.sddm.enable = true;
-  services.xserver.desktopManager.plasma5.enable = true;
-
-  # Configure keymap in X11
-  services.xserver = {
+  #services.xserver.enable = true;
+  /*  services.xserver = {
+    enable = true;
+    displayManager.sddm.enable = true;
+    desktopManager.plasma5.enable = true;
     layout = "fr";
     xkbVariant = "azerty";
+    };
+  */
+  #Enable the KDE Plasma Desktop Environment.
+  # wayland with plasma 6
+  services = {
+    xserver = {
+      enable = true;
+      xkb.layout = "fr";
+      xkb.variant = "azerty";
+    };
+    displayManager.sddm.enable = true;
+    desktopManager.plasma6.enable = true;
   };
 
   # Configure console keymap
@@ -88,11 +99,9 @@
   users.users.nyxar = {
     isNormalUser = true;
     description = "Nyxar";
-    extraGroups = [ "networkmanager" "wheel" ];
-    packages = with pkgs; [
-      kate
-    #  thunderbird
-    ];
+    extraGroups = [ "networkmanager" "wheel" "docker" "libvirt"];
+    #packages = with pkgs; [
+    #];
   };
   # Default shell
   programs.fish.enable = true;
@@ -103,8 +112,9 @@
   # Default code editor
   programs.neovim = {
     enable = true;
-    defaultEditor = true;
+    #defaultEditor = true;
   };
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
   # enable bluetooth
@@ -113,33 +123,97 @@
   # services.create_ap.enable = true;
   # List packages installed in system profile. To search, run:
   environment.systemPackages = with pkgs; [
-	vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-	neovim
-	vscode
-	fish
-	#input-leap
-	#wineWowPackages.stable
-	#grapejuice
-	winetricks
-	fastfetch
-	keepassxc
-	tree
-	htop
-	git
-	alacritty
-	# linux-wifi-hotspot
-	# haveged for more entropy
-	haveged
-
+    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    neovim
+    fish
+    #wineWowPackages.stable
+    #grapejuice
+    winetricks
+    fastfetch
+    keepassxc
+    tree
+    htop
+    btop
+    git
+    alacritty
+    # linux-wifi-hotspot
+    # haveged for more entropy
+    haveged
+    #spotify
+    ungoogled-chromium
+    mysql80
+    # ----aesthetics----
+    pipes
+    tty-clock
+    cava
+    # ------------------
+    # wayland dependencies
+    # styling with json and css
+    # waybar
+    # dunst
+    # libnotify
+    # swww
+    # rofi-wayland
+    # hyprpaper
+    # ncmpcpp
+    # ------ wayland dependencies end here------
+    mpv
+    jq
+    lan-mouse
+    qemu_kvm
+    libvirt
+    virt-manager
+    # ----awesome CLI tools----
+    fzf
+    fd
+    bat
+    # delta
+    eza
+    # --------------------------  
+    # ----- File manager ------
+    ranger
+    ueberzugpp
+    kitty
   ];
 
+  virtualisation.libvirtd.enable = true;
+  programs.virt-manager.enable = false;
+  #enable tmux  
+  programs.tmux.enable = true;
+
+  # enabling tilting window manager hyperland
+  /*  programs.hyprland = {
+    enable = true;
+    xwayland.enable = true;
+    }; */
+  programs.xwayland.enable = true;
+  #xdg.portal = {
+  #     enable = true;
+  #      extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+  #};
+
+  # enable mysql
+  services.mysql = {
+    enable = true;
+    package = pkgs.mariadb;
+  };
+  #services.longview.mysqlPasswordFile = "/run/keys/mysql.password";
   # enable rng (haveged)
   services.haveged.enable = true;
 
+  # enable docker
+  virtualisation.docker.enable = true;
+
+  # use docker without Root access (Rootless docker)
+  virtualisation.docker.rootless = {
+    enable = true;
+    setSocketVariable = true;
+  };
+
   # nix-garbage-collect every 15 days
   nix.gc = {
-  automatic = true;
-  options = "--delete-older-than 15d";
+    automatic = true;
+    options = "--delete-older-than 7d";
   };
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -153,11 +227,22 @@
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
+  # services.openssh. enable = true;
 
   # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
+  networking.firewall = {
+    enable = true;
+    allowedTCPPortRanges = [
+      { from = 2000; to = 4000; }
+    ];
+    allowedUDPPortRanges = [
+      { from = 2000; to = 4000; }
+    ];
+  };
+
+  networking.firewall.allowedTCPPorts = [ 4242 ];
+  networking.firewall.allowedUDPPorts = [ 4242 ];
+
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
 
@@ -167,6 +252,6 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "23.11"; # Did you read the comment?
+  system.stateVersion = "24.051"; # Did you read the comment?
 
 }
