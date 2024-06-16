@@ -62,7 +62,10 @@
       xkb.layout = "fr";
       xkb.variant = "azerty";
     };
-    displayManager.sddm.enable = true;
+    displayManager.sddm = {
+    enable = true;
+    	autoNumLock = true;
+    }
     desktopManager.plasma6.enable = true;
   };
 
