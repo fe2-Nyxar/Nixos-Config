@@ -8,8 +8,11 @@
   imports =
     [
       # Include the results of the hardware scan.
+      ./vm.nix 
       ./hardware-configuration.nix
       ./fonts-configuration.nix
+      ./hyprland-dependencies.nix
+
     ];
 
   # Bootloader.
@@ -59,14 +62,14 @@
   services = {
     xserver = {
       enable = true;
-      xkb.layout = "fr";
+      xkb.layout = "fr,ara";
       xkb.variant = "azerty";
     };
     displayManager.sddm = {
-    enable = true;
-    	autoNumLock = true;
-    }
-    desktopManager.plasma6.enable = true;
+        enable = true;
+    	autoNumlock = true;
+    };
+        # desktopManager.plasma6.enable = true;
   };
 
   # Configure console keymap
@@ -92,6 +95,15 @@
     #media-session.enable = true;
   };
 
+  # Enable fingerprint.
+  systemd.services.fprintd = {
+    wantedBy = [ "multi-user.target" ];
+  	serviceConfig.Type = "simple";
+  };
+  services.fprintd.enable = true;
+  services.fprintd.tod.enable = true;
+  services.fprintd.tod.driver = pkgs.libfprint-2-tod1-vfs0090;
+
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
@@ -107,15 +119,15 @@
     #];
   };
   # Default shell
-  programs.fish.enable = true;
   users.defaultUserShell = pkgs.fish;
 
   # Install firefox.
-  programs.firefox.enable = true;
-  # Default code editor
-  programs.neovim = {
-    enable = true;
-    #defaultEditor = true;
+   programs = {
+      firefox.enable = true;
+      steam.enable = true;
+      nix-ld.enable = true; 
+      neovim.enable = true;
+      fish.enable = true;
   };
 
   # Allow unfree packages
@@ -127,73 +139,86 @@
   # List packages installed in system profile. To search, run:
   environment.systemPackages = with pkgs; [
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    neovim
+    kitty
+    #---- important ----
+        ntfs3g
+        gparted
+        parted
+        gnome.gnome-disk-utility
+        testdisk
+        usbutils
+    #-----------
+    wl-clipboard
     fish
-    #wineWowPackages.stable
-    #grapejuice
-    winetricks
     fastfetch
     keepassxc
     tree
     htop
     btop
+    mpv
     git
-    alacritty
+    ranger
+    lazygit
     # linux-wifi-hotspot
     # haveged for more entropy
     haveged
-    #spotify
     ungoogled-chromium
-    mysql80
     # ----aesthetics----
     pipes
     tty-clock
     cava
     # ------------------
-    # wayland dependencies
-    # styling with json and css
-    # waybar
-    # dunst
-    # libnotify
-    # swww
-    # rofi-wayland
-    # hyprpaper
-    # ncmpcpp
-    # ------ wayland dependencies end here------
-    mpv
-    jq
     lan-mouse
-    qemu_kvm
-    libvirt
-    virt-manager
     # ----awesome CLI tools----
+    jq
     fzf
     fd
     bat
     # delta
     eza
     # --------------------------  
-    # ----- File manager ------
-    ranger
-    ueberzugpp
-    kitty
+    # ------ developpement ------
+    docker-compose
+    nodejs_22
+    libgcc
+    gcc
+    mysql80
+    lua
+    mongosh
+    rustc
+    cargo
+    gtk3
+    xdg-utils
+    brightnessctl
+ /*    gtk-layer-shell
+    pango
+    rubyPackages_3_3.gdk_pixbuf2
+    cairo
+    rubyPackages_3_3.glib2
+    glibc */
+    libdbusmenu-gtk3
+    # ------------------------
+    wineWowPackages.full
+    winetricks
+    wineWowPackages.waylandFull
+    grapejuice
+    blender-hip
+    discord
+    spotify
+    steam-run 
+    mangohud
+    goverlay
+    (prismlauncher.override { jdks = [ jdk8 jdk17 jdk19 ]; })
+    torrential
+    php83Packages.composer
+    zip
+    unzip
+    appimage-run
   ];
 
-  virtualisation.libvirtd.enable = true;
-  programs.virt-manager.enable = false;
+
   #enable tmux  
   programs.tmux.enable = true;
-
-  # enabling tilting window manager hyperland
-  /*  programs.hyprland = {
-    enable = true;
-    xwayland.enable = true;
-    }; */
-  programs.xwayland.enable = true;
-  #xdg.portal = {
-  #     enable = true;
-  #      extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-  #};
 
   # enable mysql
   services.mysql = {
