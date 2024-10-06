@@ -2,8 +2,6 @@
 {
     environment.systemPackages = with pkgs; [
         
-        waybar # styling with json and css
-        dunst # notifications
         libnotify # dependency for dunst
         rofi-wayland
         rofi-emoji
@@ -24,14 +22,14 @@
         upower
         matugen # 
         hyprpicker
+        flameshot
     ];
-
+/*
     programs.hyprland = {
         enable = true;
         xwayland.enable = true;
     };
   # enabling tilting window manager hyperland
-    programs.xwayland.enable = true;
     xdg.portal = {
         enable = true;
         extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
@@ -46,5 +44,6 @@
         # change mode power ("preformance", "balanced",...)
         power-profiles-daemon.enable = true;
     };
+*/
 }
 

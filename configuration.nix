@@ -5,20 +5,21 @@
 { config, pkgs, ... }:
 
 {
-  imports =
-    [
-      # Include the results of the hardware scan.
-      ./vm.nix 
-      ./hardware-configuration.nix
-      ./fonts-configuration.nix
-      ./hyprland-dependencies.nix
-
-    ];
+  imports = [
+    # Include the results of the hardware scan.
+    ./vm.nix
+    ./hardware-configuration.nix
+    ./fonts-configuration.nix
+    ./hyprland-dependencies.nix
+    ./Terminal.nix
+  ];
 
   # Bootloader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
+  boot.loader = {
+    systemd-boot.enable = true;
+    efi.canTouchEfiVariables = true;
+  };
+  boot.initrd.kernelModules = [ "amdgpu" ];
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
@@ -49,7 +50,8 @@
 
   # Enable the X11 windowing system.
   #services.xserver.enable = true;
-  /*  services.xserver = {
+  /*
+    services.xserver = {
     enable = true;
     displayManager.sddm.enable = true;
     desktopManager.plasma5.enable = true;
@@ -64,20 +66,26 @@
       enable = true;
       xkb.layout = "fr,ara";
       xkb.variant = "azerty";
+      videoDrivers = [ "amdgpu" ];
     };
     displayManager.sddm = {
-        enable = true;
-    	autoNumlock = true;
+      enable = true;
+      autoNumlock = true;
     };
-        # desktopManager.plasma6.enable = true;
+    desktopManager.plasma6.enable = true;
   };
+  programs.xwayland.enable = true;
 
   # Configure console keymap
   console.keyMap = "fr";
 
   # Enable CUPS to print documents.
-  services.printing.enable = true;
-
+  services = {
+    printing.enable = true;
+    udev.enable = true;
+  };
+  # enable bluetooth
+  hardware.bluetooth.enable = true;
   # Enable sound with pipewire.
   sound.enable = true;
   hardware.pulseaudio.enable = false;
@@ -87,7 +95,6 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    # If you want to use JACK applications, uncomment this
     #jack.enable = true;
 
     # use the example session manager (no others are packaged yet so this is enabled by default,
@@ -96,72 +103,90 @@
   };
 
   # Enable fingerprint.
-  systemd.services.fprintd = {
-    wantedBy = [ "multi-user.target" ];
-  	serviceConfig.Type = "simple";
-  };
-  services.fprintd.enable = true;
-  services.fprintd.tod.enable = true;
-  services.fprintd.tod.driver = pkgs.libfprint-2-tod1-vfs0090;
-
+  /*
+      services.fprintd = {
+        enable = true;
+        tod.enable = true;
+        tod.driver = pkgs.libfprint-2-tod1-vfs0090;
+    }
+      systemd.services.fprintd = {
+        wantedBy = [ "multi-user.target" ];
+      	serviceConfig.Type = "simple";
+      };
+  */
+  /*
+    services.fprintd = {
+      enable = true;
+      tod.enable = true;
+      tod.driver = pkgs.libfprint-2-tod1-vfs0090;
+    };
+  */
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
   # Allow experimental feature "flakes"
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.nyxar = {
-    isNormalUser = true;
-    description = "Nyxar";
-    extraGroups = [ "networkmanager" "wheel" "docker" "libvirt"];
-    #packages = with pkgs; [
-    #];
+  users = {
+    # Default shell
+    defaultUserShell = pkgs.fish;
+    users.nyxar = {
+      isNormalUser = true;
+      description = "Nyxar";
+      extraGroups = [
+        "networkmanager"
+        "wheel"
+        "docker"
+        "libvirt"
+      ];
+      # packages = with pkgs; [];
+    };
   };
-  # Default shell
-  users.defaultUserShell = pkgs.fish;
 
-  # Install firefox.
-   programs = {
-      firefox.enable = true;
-      steam.enable = true;
-      nix-ld.enable = true; 
-      neovim.enable = true;
-      fish.enable = true;
+  programs = {
+    firefox.enable = true;
+    steam.enable = true;
+    nix-ld.enable = true;
+    neovim.enable = true;
+    fish.enable = true;
   };
+
+  #NOTE: automount/umount
+  services.gvfs.enable = true;
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
-  # enable bluetooth
-  hardware.bluetooth.enable = true;
   # enable hotspot
   # services.create_ap.enable = true;
   # List packages installed in system profile. To search, run:
   environment.systemPackages = with pkgs; [
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     kitty
-    #---- important ----
-        ntfs3g
-        gparted
-        parted
-        gnome.gnome-disk-utility
-        testdisk
-        usbutils
-    #-----------
-    wl-clipboard
-    fish
-    fastfetch
+    #---- disk / partition related packages ----
+    disko # format and changing fs in a declarative way
+    ntfs3g
+    gparted
+    parted
+    gnome.gnome-disk-utility
+    testdisk
+    usbutils
+    ventoy-full
+    #--- password manager ---
     keepassxc
-    tree
-    htop
-    btop
+    syncthing
+    # entropy daemon
+    haveged
+    #-------------------
     mpv
     git
     ranger
-    lazygit
+    obs-studio
+    linuxKernel.packages.linux_zen.v4l2loopback # virtual camera
     # linux-wifi-hotspot
-    # haveged for more entropy
-    haveged
     ungoogled-chromium
     # ----aesthetics----
     pipes
@@ -169,14 +194,7 @@
     cava
     # ------------------
     lan-mouse
-    # ----awesome CLI tools----
-    jq
-    fzf
-    fd
-    bat
-    # delta
-    eza
-    # --------------------------  
+
     # ------ developpement ------
     docker-compose
     nodejs_22
@@ -184,41 +202,54 @@
     gcc
     mysql80
     lua
+    php83Packages.composer
+    nixfmt-rfc-style # format for the nix language
+    nixd # lsp for nix
     mongosh
     rustc
     cargo
-    gtk3
-    xdg-utils
+    nix-tree
     brightnessctl
- /*    gtk-layer-shell
-    pango
-    rubyPackages_3_3.gdk_pixbuf2
-    cairo
-    rubyPackages_3_3.glib2
-    glibc */
-    libdbusmenu-gtk3
-    # ------------------------
-    wineWowPackages.full
-    winetricks
-    wineWowPackages.waylandFull
-    grapejuice
-    blender-hip
-    discord
-    spotify
-    steam-run 
-    mangohud
-    goverlay
-    (prismlauncher.override { jdks = [ jdk8 jdk17 jdk19 ]; })
-    torrential
-    php83Packages.composer
+    fprintd
     zip
     unzip
     appimage-run
+    steam-run
+    gtk3
+    libdbusmenu-gtk3
+    xdg-utils
+    /*
+      gtk-layer-shell
+      pango
+      rubyPackages_3_3.gdk_pixbuf2
+      cairo
+      rubyPackages_3_3.glib2
+      glibc
+    */
+    # ------------------------
+    winetricks
+    wineWowPackages.waylandFull
+    blender-hip
+    vesktop
+    discover-overlay # overlay for audio
+    spotify
+    obsidian
+    libreoffice # alternative for microsoft office
+    hunspell # spellchecker
+    hunspellDicts.en_US # english_usa
+    hunspellDicts.fr-any # french - any variant
+    mangohud
+    goverlay
+    (prismlauncher.override {
+      jdks = [
+        jdk8
+        jdk17
+        jdk19
+        jdk21_headless
+      ];
+    })
+    torrential
   ];
-
-
-  #enable tmux  
-  programs.tmux.enable = true;
 
   # enable mysql
   services.mysql = {
@@ -226,7 +257,7 @@
     package = pkgs.mariadb;
   };
   #services.longview.mysqlPasswordFile = "/run/keys/mysql.password";
-  # enable rng (haveged)
+  # enable rng (haveged) #NOTE: this is for entropy (generate randomness) 
   services.haveged.enable = true;
 
   # enable docker
@@ -255,31 +286,27 @@
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-  # services.openssh. enable = true;
+  # services.openssh.enable = true;
 
   # Open ports in the firewall.
   networking.firewall = {
     enable = true;
     allowedTCPPortRanges = [
-      { from = 2000; to = 4000; }
+      {
+        from = 2000;
+        to = 4000;
+      }
     ];
     allowedUDPPortRanges = [
-      { from = 2000; to = 4000; }
+      {
+        from = 2000;
+        to = 4000;
+      }
     ];
   };
 
   networking.firewall.allowedTCPPorts = [ 4242 ];
   networking.firewall.allowedUDPPorts = [ 4242 ];
 
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
-
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It‘s perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "24.051"; # Did you read the comment?
-
+  system.stateVersion = "24.051"; # Did you read the comments? no :(
 }
