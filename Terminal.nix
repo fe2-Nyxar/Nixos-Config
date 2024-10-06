@@ -8,11 +8,15 @@
       settings = {
         add_newline = true;
         scan_timeout = 10;
-        format = "$username$hostname$directory$nix_shell$nodejs$lua$git_branch$git_commit$git_state$git_status\n    [](bold dimmed blue)";
+        format = "$all$nix_shell$nodejs$lua$golang$rust$php$git_branch$git_commit$git_state$git_status\n$username$hostname$directory";
+        character = {
+          success_symbol = "[](bold green) ";
+          error_symbol = "[✗](bold red) ";
+        };
         git_branch = {
           symbol = " ";
           style = "#fc937b";
-          format = "on [$symbol$branch(:$remote_branch)]($style) ";
+          format = "[$symbol$branch(:$remote_branch)]($style) ";
         };
         git_commit = {
           tag_symbol = "󰜝 ";
@@ -30,11 +34,15 @@
         };
         lua = {
           format = "[ $version](bold blue) ";
-          disabled = false;
+        };
+        golang = {
+          format = "[󰟓 ($version )($mod_version )](bold dimmed #00ADD8)";
+        };
+        php = {
+          format = "[ $version](147 bold) ";
         };
         nodejs = {
           format = "[ ($version )](bold green)";
-          disabled = false;
         };
         directory = {
           truncation_length = 2;
