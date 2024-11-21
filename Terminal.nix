@@ -7,7 +7,8 @@
       enable = true;
       settings = {
         add_newline = true;
-        scan_timeout = 10;
+        command_timeout = 1300;
+        scan_timeout = 50;
         format = "$all$nix_shell$nodejs$lua$golang$rust$php$git_branch$git_commit$git_state$git_status\n$username$hostname$directory";
         character = {
           success_symbol = "[](bold green) ";
@@ -71,7 +72,7 @@
           format = "[$state(($name))]($style) ";
           disabled = false;
           impure_msg = "[ ](bold red)";
-          pure_msg = "[ ](bold green)";
+          pure_msg = "[ ](bold blue)";
           style = "bold blue";
         };
         /*
@@ -101,6 +102,9 @@
     autojump # jump over sub directories
     # delta
     eza
+    pstree
+    lsof # listen open files
+    tealdeer # simplify man pages and more
     # --------------------------  
   ];
 }

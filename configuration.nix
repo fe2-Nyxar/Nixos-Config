@@ -1,7 +1,6 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-
 { config, pkgs, ... }:
 
 {
@@ -14,7 +13,7 @@
     ./Terminal.nix
   ];
 
-  # Bootloader.
+  # Bootloader:
   boot.loader = {
     systemd-boot.enable = true;
     efi.canTouchEfiVariables = true;
@@ -22,13 +21,24 @@
   boot.initrd.kernelModules = [ "amdgpu" ];
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
+  boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
+  boot.extraModprobeConfig = ''
+    options v4l2loopback devices=1 video_nr=1 card_label="OBS Cam" exclusive_caps=1
+  '';
+  security.polkit.enable = true;
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Enable networking
   networking.networkmanager.enable = true;
+
+  networking = {
+    nameservers = [
+      "9.9.9.9"
+      "149.112.112.112"
+    ]; # Cloudflare's malware-filtering DNS
+  };
 
   # Set your time zone.
   time.timeZone = "Africa/Casablanca";
@@ -59,31 +69,9 @@
     xkbVariant = "azerty";
     };
   */
-  #Enable the KDE Plasma Desktop Environment.
-  # wayland with plasma 6
-  services = {
-    xserver = {
-      enable = true;
-      xkb.layout = "fr,ara";
-      xkb.variant = "azerty";
-      videoDrivers = [ "amdgpu" ];
-    };
-    displayManager.sddm = {
-      enable = true;
-      autoNumlock = true;
-    };
-    desktopManager.plasma6.enable = true;
-  };
-  programs.xwayland.enable = true;
-
   # Configure console keymap
   console.keyMap = "fr";
 
-  # Enable CUPS to print documents.
-  services = {
-    printing.enable = true;
-    udev.enable = true;
-  };
   # enable bluetooth
   hardware.bluetooth.enable = true;
   # Enable sound with pipewire.
@@ -111,7 +99,7 @@
     }
       systemd.services.fprintd = {
         wantedBy = [ "multi-user.target" ];
-      	serviceConfig.Type = "simple";
+       	serviceConfig.Type = "simple";
       };
   */
   /*
@@ -153,11 +141,11 @@
     nix-ld.enable = true;
     neovim.enable = true;
     fish.enable = true;
+    zsh.enable = true;
+    xwayland.enable = true;
   };
 
-  #NOTE: automount/umount
-  services.gvfs.enable = true;
-
+  #  programs.firefox.nativeMessagingHosts.packages = [ pkgs.uget-integrator ];
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
   # enable hotspot
@@ -177,9 +165,8 @@
     ventoy-full
     #--- password manager ---
     keepassxc
-    syncthing
     # entropy daemon
-    haveged
+    syncthing
     #-------------------
     mpv
     git
@@ -202,6 +189,8 @@
     gcc
     mysql80
     lua
+    go
+    python311
     php83Packages.composer
     nixfmt-rfc-style # format for the nix language
     nixd # lsp for nix
@@ -231,6 +220,7 @@
     wineWowPackages.waylandFull
     blender-hip
     vesktop
+    webcamoid
     discover-overlay # overlay for audio
     spotify
     obsidian
@@ -240,6 +230,7 @@
     hunspellDicts.fr-any # french - any variant
     mangohud
     goverlay
+    #uget # download manager
     (prismlauncher.override {
       jdks = [
         jdk8
@@ -251,22 +242,58 @@
     torrential
   ];
 
-  # enable mysql
-  services.mysql = {
-    enable = true;
-    package = pkgs.mariadb;
+  services = {
+    /*
+      syncthing = {
+        enable = true;
+      };
+    */
+    mysql = {
+      enable = true;
+      package = pkgs.mariadb;
+    };
+    #longview.mysqlPasswordFile = "/run/keys/mysql.password";
+    gvfs.enable = true; # NOTE: automount/umount
+    haveged.enable = true; # enable rng (haveged) #NOTE: this is for entropy (generate randomness)
+    openssh.enable = true; # Enable the OpenSSH daemon.
+    #Enable the KDE Plasma Desktop Environment.
+    # wayland with plasma 6
+    xserver = {
+      enable = true;
+      xkb.layout = "fr,ara";
+      xkb.variant = "azerty";
+      videoDrivers = [ "amdgpu" ];
+    };
+    displayManager.sddm = {
+      enable = true;
+      autoNumlock = true;
+    };
+    desktopManager.plasma6.enable = true;
+    #-----------
+    # Enable CUPS to print documents.
+    printing.enable = true;
+    udev.enable = true;
+    #--------
+    # anti-virus
+    clamav = {
+      daemon.enable = true;
+      updater.enable = true;
+    };
   };
-  #services.longview.mysqlPasswordFile = "/run/keys/mysql.password";
-  # enable rng (haveged) #NOTE: this is for entropy (generate randomness) 
-  services.haveged.enable = true;
-
-  # enable docker
-  virtualisation.docker.enable = true;
-
-  # use docker without Root access (Rootless docker)
-  virtualisation.docker.rootless = {
+  virtualisation.docker = {
+    # enable docker
     enable = true;
-    setSocketVariable = true;
+    # use docker without Root access (Rootless docker)
+    rootless = {
+      enable = true;
+      setSocketVariable = true;
+    };
+    #NOTE: change docker images default path
+    /*
+      daemon.settings = {
+          data-root = "~/Programming/Coding/docker/images/";
+      };
+    */
   };
 
   # nix-garbage-collect every 15 days
@@ -284,9 +311,6 @@
   # };
 
   # List services that you want to enable:
-
-  # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
 
   # Open ports in the firewall.
   networking.firewall = {
