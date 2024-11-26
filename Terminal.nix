@@ -11,6 +11,11 @@
         scan_timeout = 50;
         format = "$all$nix_shell$nodejs$lua$golang$rust$php$git_branch$git_commit$git_state$git_status\n$username$hostname$directory";
         character = {
+          format = "$symbol ";
+          vicmd_symbol = "[](bold dimmed #ff79c6)";
+          vimcmd_replace_symbol = "[](bold dimmed purple)";
+          vimcmd_replace_one_symbol = "[](bold dimmed cyan)";
+          vimcmd_visual_symbol = "[](bold dimmed yellow)";
           success_symbol = "[](bold green) ";
           error_symbol = "[✗](bold red) ";
         };
@@ -101,10 +106,11 @@
     btop
     autojump # jump over sub directories
     # delta
+    ripgrep # recursive search, run rg
     eza
     pstree
     lsof # listen open files
-    tealdeer # simplify man pages and more
+    tealdeer # simplify man pages and more, run tldr <cmd>
     # --------------------------  
   ];
 }

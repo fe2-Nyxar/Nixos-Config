@@ -75,7 +75,6 @@
   # enable bluetooth
   hardware.bluetooth.enable = true;
   # Enable sound with pipewire.
-  sound.enable = true;
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
@@ -99,7 +98,7 @@
     }
       systemd.services.fprintd = {
         wantedBy = [ "multi-user.target" ];
-       	serviceConfig.Type = "simple";
+               	serviceConfig.Type = "simple";
       };
   */
   /*
@@ -186,9 +185,10 @@
     docker-compose
     nodejs_22
     libgcc
+    luarocks
+    lua5_1
     gcc
     mysql80
-    lua
     go
     python311
     php83Packages.composer
@@ -301,6 +301,8 @@
     automatic = true;
     options = "--delete-older-than 7d";
   };
+  nix.optimise.automatic = true;
+  nix.settings.auto-optimise-store = true;
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
