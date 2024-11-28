@@ -104,6 +104,7 @@
     bat
     htop
     btop
+    ranger
     autojump # jump over sub directories
     # delta
     ripgrep # recursive search, run rg
